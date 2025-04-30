@@ -2,7 +2,7 @@ FROM alpine:latest
 
 # Установка зависимостей и скачивание 3proxy
 RUN apk add --no-cache curl \
-    && curl -L https://github.com/3proxy/3proxy/releases/download/0.9.4/3proxy-0.9.4.x86_64.tar.gz -o 3proxy.tar.gz \
+    && curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3proxy.tar.gz \
     && tar -xzf 3proxy.tar.gz \
     && mv 3proxy /usr/local/bin/3proxy \
     && chmod +x /usr/local/bin/3proxy \
