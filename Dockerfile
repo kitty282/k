@@ -13,8 +13,9 @@ RUN curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3
     && cd .. \
     && rm -rf 3proxy-0.9.5 3proxy.tar.gz
 
-# Простая страница для Health Check
-RUN echo "OK" > /usr/share/nginx/html/health
+# Создание директории для Nginx и простой страницы для Health Check
+RUN mkdir -p /usr/share/nginx/html \
+    && echo "OK" > /usr/share/nginx/html/health
 
 # Конфигурация Nginx для ответа на Health Check
 RUN echo "server { listen 8080; location /health { root /usr/share/nginx/html; } }" > /etc/nginx/http.d/default.conf
