@@ -30,6 +30,6 @@ EXPOSE 3128 1080 8080
 
 # Отладка: запуск с выводом логов
 CMD echo "Starting 3proxy..." && \
-    /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg & \
+    /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg || { echo "3proxy failed to start"; exit 1; } & \
     echo "Starting nginx..." && \
-    nginx -g 'daemon off;'
+    nginx -g 'daemon off;' || { echo "nginx failed to start"; exit 1; }
