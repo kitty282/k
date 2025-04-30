@@ -1,7 +1,7 @@
 FROM alpine:latest
 
-# Установка зависимостей для сборки
-RUN apk add --no-cache build-base curl
+# Установка зависимостей для сборки и nginx
+RUN apk add --no-cache build-base curl nginx
 
 # Скачивание и сборка 3proxy из исходников
 RUN curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3proxy.tar.gz \
@@ -13,11 +13,17 @@ RUN curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3
     && cd .. \
     && rm -rf 3proxy-0.9.5 3proxy.tar.gz
 
-# Копирование конфигурации
+# Простая страница для Health Check
+RUN echo "OK" > /usr/share/nginx/html/health
+
+# Конфигурация Nginx для ответа на Health Check
+RUN echo "server { listen 8080; location /health { root /usr/share/nginx/html; } }" > /etc/nginx/http.d/default.conf
+
+# Копирование конфигурации 3proxy
 COPY 3proxy.cfg /etc/3proxy/3proxy.cfg
 
 # Открытие портов
-EXPOSE 3128 1080
+EXPOSE 3128 1080 8080
 
-# Запуск 3proxy
-CMD ["/usr/local/bin/3proxy", "/etc/3proxy/3proxy.cfg"]
+# Запуск 3proxy и Nginx
+CMD /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg & nginx -g 'daemon off;'
