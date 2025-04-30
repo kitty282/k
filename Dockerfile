@@ -13,8 +13,10 @@ RUN curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3
     && cd .. \
     && rm -rf 3proxy-0.9.5 3proxy.tar.gz
 
-# Создание директории для Nginx и простой страницы для Health Check
+# Создание директорий для Nginx
 RUN mkdir -p /usr/share/nginx/html \
+    && mkdir -p /var/log/nginx \
+    && mkdir -p /run/nginx \
     && echo "OK" > /usr/share/nginx/html/health
 
 # Конфигурация Nginx для ответа на Health Check
@@ -26,5 +28,5 @@ COPY 3proxy.cfg /etc/3proxy/3proxy.cfg
 # Открытие портов
 EXPOSE 3128 1080 8080
 
-# Запуск 3proxy и Nginx
+# Запуск 3proxy и Nginx с выводом логов в stdout
 CMD /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg & nginx -g 'daemon off;'
