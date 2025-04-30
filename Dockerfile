@@ -1,35 +1,38 @@
 FROM alpine:latest
 
-# Установка зависимостей для сборки и nginx
+# 1) Устанавливаем зависимости для сборки 3proxy и nginx
 RUN apk add --no-cache build-base curl nginx
 
-# Скачивание и сборка 3proxy из исходников
+# 2) Скачиваем и собираем 3proxy версии 0.9.5
 RUN curl -L https://github.com/3proxy/3proxy/archive/refs/tags/0.9.5.tar.gz -o 3proxy.tar.gz \
-    && tar -xzf 3proxy.tar.gz \
-    && cd 3proxy-0.9.5 \
-    && make -f Makefile.Linux \
-    && cp bin/3proxy /usr/local/bin/3proxy \
-    && chmod +x /usr/local/bin/3proxy \
-    && cd .. \
-    && rm -rf 3proxy-0.9.5 3proxy.tar.gz
+ && tar xzf 3proxy.tar.gz \
+ && cd 3proxy-0.9.5 \
+ && make -f Makefile.Linux \
+ && cp bin/3proxy /usr/local/bin/3proxy \
+ && chmod +x /usr/local/bin/3proxy \
+ && cd .. \
+ && rm -rf 3proxy-0.9.5 3proxy.tar.gz
 
-# Создание директорий для Nginx
-RUN mkdir -p /usr/share/nginx/html \
-    && mkdir -p /var/log/nginx \
-    && mkdir -p /run/nginx \
-    && echo "OK" > /usr/share/nginx/html/health
+# 3) Создаём нужные директории
+RUN mkdir -p /etc/3proxy \
+         /usr/share/nginx/html \
+         /var/log/nginx \
+         /run/nginx
 
-# Конфигурация Nginx для ответа на Health Check
-RUN echo "server { listen 8080; location /health { root /usr/share/nginx/html; } }" > /etc/nginx/http.d/default.conf
+# 4) Настраиваем простую страницу для health-check
+RUN echo "OK" > /usr/share/nginx/html/health \
+ && printf "server {\n  listen 8080;\n  location /health { root /usr/share/nginx/html; }\n}" \
+      > /etc/nginx/http.d/default.conf
 
-# Копирование конфигурации 3proxy
+# 5) Копируем конфиг 3proxy внутрь контейнера
 COPY 3proxy.cfg /etc/3proxy/3proxy.cfg
 
-# Открытие портов
+# 6) Копируем и делаем исполняемым скрипт запуска
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 7) Открываем порты
 EXPOSE 3128 1080 8080
 
-# Отладка: запуск с выводом логов
-CMD echo "Starting 3proxy..." && \
-    /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg || { echo "3proxy failed to start"; exit 1; } & \
-    echo "Starting nginx..." && \
-    nginx -g 'daemon off;' || { echo "nginx failed to start"; exit 1; }
+# 8) Определяем entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
