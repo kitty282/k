@@ -28,5 +28,8 @@ COPY 3proxy.cfg /etc/3proxy/3proxy.cfg
 # Открытие портов
 EXPOSE 3128 1080 8080
 
-# Запуск 3proxy и Nginx с выводом логов в stdout
-CMD /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg & nginx -g 'daemon off;'
+# Отладка: запуск с выводом логов
+CMD echo "Starting 3proxy..." && \
+    /usr/local/bin/3proxy /etc/3proxy/3proxy.cfg & \
+    echo "Starting nginx..." && \
+    nginx -g 'daemon off;'
